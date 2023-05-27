@@ -129,26 +129,29 @@ def calcRMSTEC(coordLat,coordLon,filename):
 	# contain 25 RMS TEC maps in total. The interpolation method used is the second
 	# one indicated in the IONEX manual
 
-	# Creating a new array that will contain 25 maps in total 
-	newa = numpy.zeros((totalmaps, int(pointsLat), int(pointsLon)))
-	inc = 0
-	for item in range(int(NumberOfMaps)):
-		newa[inc,:,:] = a[item,:,:]
-		inc = inc + 2
+	# # Creating a new array that will contain 25 maps in total 
+	# newa = numpy.zeros((totalmaps, int(pointsLat), int(pointsLon)))
+	# inc = 0
+	# for item in range(int(NumberOfMaps)):
+	# 	newa[inc,:,:] = a[item,:,:]
+	# 	inc = inc + 2
 
-	# Performing the interpolation to create 12 addional maps 
-	# from the 13 RMS TEC maps available
-	while int(timeInt) <= (totalmaps-2):
-		for lat in range(int(pointsLat)):
-			for lon in range(int(pointsLon)):
-				# interpolation type 2:
-				# newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon] + 0.5*newa[int(timeInt)+1,lat,lon]  
-				# interpolation type 3 ( 3 or 4 columns to the right and left of the odd maps have values of zero
-				# Correct for this):
-				if (lon >= 4) and (lon <= (pointsLon-4)):
-					newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon+3] + 0.5*newa[int(timeInt)+1,lat,lon-3]
-		timeInt = timeInt + 2.0
+	# # Performing the interpolation to create 12 addional maps 
+	# # from the 13 RMS TEC maps available
+	# while int(timeInt) <= (totalmaps-2):
+	# 	for lat in range(int(pointsLat)):
+	# 		for lon in range(int(pointsLon)):
+	# 			# interpolation type 2:
+	# 			# newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon] + 0.5*newa[int(timeInt)+1,lat,lon]  
+	# 			# interpolation type 3 ( 3 or 4 columns to the right and left of the odd maps have values of zero
+	# 			# Correct for this):
+	# 			if (lon >= 4) and (lon <= (pointsLon-4)):
+	# 				newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon+3] + 0.5*newa[int(timeInt)+1,lat,lon-3]
+	# 	timeInt = timeInt + 2.0
 	#========================================================================================
+ 	# Do not interpolate RMS TEC map
+	newa = a
+	#==========================================================================================
 
 
 	#========================================================================================
