@@ -31,7 +31,7 @@ dayofyear = datetime.datetime.strptime(''+str(year)+' '+str(month)+' '+str(day)+
 
 if dayofyear < 10:
         dayofyear = '00'+str(dayofyear)
-if dayofyear < 100 and dayofyear >= 10:
+elif dayofyear < 100 and dayofyear >= 10:
         dayofyear = '0'+str(dayofyear)
 
 # Outputing the name of the IONEX file you require
@@ -47,7 +47,7 @@ url = 'https://cddis.nasa.gov/archive/gps/products/ionex/'+str(year)+'/'+str(day
 
 # local file name to the last part of the URL
 filename = file
-print file
+print(file)
 
 # Makes request of URL, stores response in variable r
 r = requests.get(url)
