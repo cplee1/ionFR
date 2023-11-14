@@ -44,6 +44,8 @@ def calcRMSTEC(coordLat,coordLon,filename):
 				add = 1
 		if add == 1:	
 			NewLongList.append(LongList[i])
+		if LongList[i].split()[-1] == 'INTERVAL':
+			EpochInterval = float(LongList[i].split()[0])
 		if LongList[i].split()[-1] == 'FILE':
 			if LongList[i].split()[-2] == 'IN':
 				NumberOfMaps = float(LongList[i].split()[0])
@@ -125,32 +127,34 @@ def calcRMSTEC(coordLat,coordLon,filename):
 
 
 	#========================================================================================
-	# Producing interpolated RMS TEC maps, and consequently a new array that will 
-	# contain 25 RMS TEC maps in total. The interpolation method used is the second
-	# one indicated in the IONEX manual
+	if EpochInterval == 7200.0:
+		# Producing interpolated RMS TEC maps, and consequently a new array that will 
+		# contain 25 RMS TEC maps in total. The interpolation method used is the second
+		# one indicated in the IONEX manual
 
-	# # Creating a new array that will contain 25 maps in total 
-	# newa = numpy.zeros((totalmaps, int(pointsLat), int(pointsLon)))
-	# inc = 0
-	# for item in range(int(NumberOfMaps)):
-	# 	newa[inc,:,:] = a[item,:,:]
-	# 	inc = inc + 2
+		# Creating a new array that will contain 25 maps in total 
+		newa = numpy.zeros((totalmaps, int(pointsLat), int(pointsLon)))
+		inc = 0
+		for item in range(int(NumberOfMaps)):
+			newa[inc,:,:] = a[item,:,:]
+			inc = inc + 2
 
-	# # Performing the interpolation to create 12 addional maps 
-	# # from the 13 RMS TEC maps available
-	# while int(timeInt) <= (totalmaps-2):
-	# 	for lat in range(int(pointsLat)):
-	# 		for lon in range(int(pointsLon)):
-	# 			# interpolation type 2:
-	# 			# newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon] + 0.5*newa[int(timeInt)+1,lat,lon]  
-	# 			# interpolation type 3 ( 3 or 4 columns to the right and left of the odd maps have values of zero
-	# 			# Correct for this):
-	# 			if (lon >= 4) and (lon <= (pointsLon-4)):
-	# 				newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon+3] + 0.5*newa[int(timeInt)+1,lat,lon-3]
-	# 	timeInt = timeInt + 2.0
-	#========================================================================================
- 	# Do not interpolate RMS TEC map
-	newa = a
+		# Performing the interpolation to create 12 addional maps 
+		# from the 13 RMS TEC maps available
+		while int(timeInt) <= (totalmaps-2):
+			for lat in range(int(pointsLat)):
+				for lon in range(int(pointsLon)):
+					# interpolation type 2:
+					# newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon] + 0.5*newa[int(timeInt)+1,lat,lon]  
+					# interpolation type 3 ( 3 or 4 columns to the right and left of the odd maps have values of zero
+					# Correct for this):
+					if (lon >= 4) and (lon <= (pointsLon-4)):
+						newa[int(timeInt),lat,lon] = 0.5*newa[int(timeInt)-1,lat,lon+3] + 0.5*newa[int(timeInt)+1,lat,lon-3]
+			timeInt = timeInt + 2.0
+	else:
+		# Either the time resolution is less than or equal to 1 hour, or the time resolution
+		# is not 2 hours, so do not interpolate TEC map
+		newa = a
 	#==========================================================================================
 
 
