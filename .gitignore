@@ -1,1 +1,3 @@
 IGRF/geomag70_linux/*.exe
+IGRF/geomag70_linux/*.txt
+*/__pycache__/
