@@ -15,8 +15,7 @@
 #	coordLon	longitude of the antenna (degrees)
 #	filename	IONEX file name
 # Output: 
-#	rmsTEC		array containing RMS TEC 
-#			values
+#	rmsTEC		array containing RMS TEC values
 #------------------------------------------------------
 
 import numpy
@@ -26,7 +25,7 @@ def calcRMSTEC(coordLat,coordLon,filename):
 	timeInt = 1.0 # hours
 	totalmaps = 25
 
-	#========================================================================================
+	#===========================================================================
 	# Reading and storing only the RMS TEC values
 	# (13 maps) into a 3D array
 
@@ -49,8 +48,8 @@ def calcRMSTEC(coordLat,coordLon,filename):
 		if LongList[i].split()[-1] == 'FILE':
 			if LongList[i].split()[-2] == 'IN':
 				NumberOfMaps = float(LongList[i].split()[0])
-		if LongList[i].split()[-1] == 'DHGT':
-			IonH = float(LongList[i].split()[0])
+		# if LongList[i].split()[-1] == 'DHGT':
+		# 	IonH = float(LongList[i].split()[0])
 		if LongList[i].split()[-1] == 'DLAT':
 			startLat = float(LongList[i].split()[0])
 			endLat = float(LongList[i].split()[1])
@@ -123,10 +122,10 @@ def calcRMSTEC(coordLat,coordLon,filename):
 					counterLat = counterLat + 6
 					newstartLat = newstartLat + stepLat
 				counterMaps = counterMaps + 1
-	#========================================================================================
+	#===========================================================================
 
 
-	#========================================================================================
+	#===========================================================================
 	if EpochInterval == 7200.0:
 		# Producing interpolated RMS TEC maps, and consequently a new array that will 
 		# contain 25 RMS TEC maps in total. The interpolation method used is the second
@@ -155,17 +154,15 @@ def calcRMSTEC(coordLat,coordLon,filename):
 		# Either the time resolution is less than or equal to 1 hour, or the time resolution
 		# is not 2 hours, so do not interpolate TEC map
 		newa = a
-	#==========================================================================================
+	#===========================================================================
 
 
-	#========================================================================================
+	#===========================================================================
 	# Finding out the RMS TEC value for the coordinates given
 	# at every hour
 
 	# Locating the 4 points in the IONEX grid map which surround
 	# the coordinates you want to calculate the RMS TEC value from  
-	indexLat = 0
-	indexLon = 0
 	n = 0
 	m = 0
 	for lon in range(int(pointsLon)):
@@ -189,6 +186,6 @@ def calcRMSTEC(coordLat,coordLon,filename):
 	RMSTECvalues = []
 	for m in range(totalmaps):			
 		RMSTECvalues.append((1.0-p)*(1.0-q)*newa[m,lowerIndexLat,lowerIndexLon] + p*(1.0-q)*newa[m,lowerIndexLat,higherIndexLon] + q*(1.0-p)*newa[m,higherIndexLat,lowerIndexLon] + p*q*newa[m,higherIndexLat,higherIndexLon])
-	#========================================================================================
+	#===========================================================================
 
 	return RMSTECvalues

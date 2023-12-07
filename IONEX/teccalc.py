@@ -13,6 +13,7 @@
 # divided by the cos(ZenithSource -> the direction
 # along the line of sight of the source of interest).
 #
+# For IONEX files with a 2 hour time resolution,
 # 25 TEC maps from the 13 initially provided are
 # created. The interpolation method used is the third
 # one indicated in the IONEX manual. A grid interpolation
@@ -35,7 +36,7 @@ def calcTEC(coordLat,coordLon,filename):
 	timeInt = 1.0 # hours
 	totalmaps = 25
 
-	#==========================================================================
+	#===========================================================================
 	# Reading and storing only the TEC values of 1 day
 	# (13 maps) into a 3D array
 
@@ -58,8 +59,8 @@ def calcTEC(coordLat,coordLon,filename):
 		if LongList[i].split()[-1] == 'FILE':
 			if LongList[i].split()[-2] == 'IN':
 				NumberOfMaps = float(LongList[i].split()[0])
-		if LongList[i].split()[-1] == 'DHGT':
-			IonH = float(LongList[i].split()[0])
+		# if LongList[i].split()[-1] == 'DHGT':
+		# 	IonH = float(LongList[i].split()[0])
 		if LongList[i].split()[-1] == 'DLAT':
 			startLat = float(LongList[i].split()[0])
 			endLat = float(LongList[i].split()[1])
@@ -135,10 +136,10 @@ def calcTEC(coordLat,coordLon,filename):
 					counterLat = counterLat + 6
 					newstartLat = newstartLat + stepLat
 				counterMaps = counterMaps + 1
-	#==========================================================================
+	#===========================================================================
 
 
-	#==========================================================================================
+	#===========================================================================
 	if EpochInterval == 7200.0:
 		# producing interpolated TEC maps, and consequently a new array that will 
 		# contain 25 TEC maps in total. The interpolation method used is the second
@@ -167,17 +168,15 @@ def calcTEC(coordLat,coordLon,filename):
 		# Either the time resolution is less than or equal to 1 hour, or the time resolution
 		# is not 2 hours, so do not interpolate TEC map
 		newa = a
-	#==========================================================================================
+	#===========================================================================
 
 
-	#=========================================================================
+	#===========================================================================
 	# Finding out the TEC value for the coordinates given
 	# at every hour
 
 	# Locating the 4 points in the IONEX grid map which surround
 	# the coordinate you want to calculate the TEC value from  
-	indexLat = 0
-	indexLon = 0
 	n = 0
 	m = 0
 	for lon in range(int(pointsLon)):
@@ -201,15 +200,6 @@ def calcTEC(coordLat,coordLon,filename):
 	TECvalues = []
 	for m in range(totalmaps):			
 		TECvalues.append((1.0-p)*(1.0-q)*newa[m,lowerIndexLat,lowerIndexLon] + p*(1.0-q)*newa[m,lowerIndexLat,higherIndexLon] + q*(1.0-p)*newa[m,higherIndexLat,lowerIndexLon] + p*q*newa[m,higherIndexLat,higherIndexLon])
-	#=========================================================================
+	#===========================================================================
 
 	return TECvalues
-
-
-
-		
-		
-
-
-
-
