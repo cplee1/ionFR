@@ -1,73 +1,148 @@
 #!/usr/bin/env python
-'''
+"""
 Script to download publicly available TEC maps from
-https://cddis.nasa.gov/archive/gps/products/ionex/yyyy/day/*i.Z
-usage:
-python url_download.py -d yyyy-mm-dd [-t type]
--d gives date of observation
--t gives type of ionex file (codg,upcg,igsg) codg maps are default option
+https://cddis.nasa.gov/archive/gps/products/ionex/yyyy/ddd/
 
+Version history:
 v0.1 modified from ftpdownload.py, Charlotte Sobey 2021
-'''
+v0.2 updated for new file naming scheme and added date range option, C. P. Lee 2023
+"""
 
-import datetime
-import optparse as op
+import logging
+from datetime import datetime, timedelta
+import argparse
 import requests
 
-p=op.OptionParser()
-p.add_option('--date','-d',default='NONE',type='string',help='Date (yyyy-mm-dd)')
-p.add_option('--type','-t',default='codg',type='string',help='Type of ionex file (codg,upcg,igsg) [codg default]')
-ops,args=p.parse_args()
+logging.basicConfig(level=logging.INFO)
 
-# Reading the date provided
-year = int(ops.date.split('-')[0])
-month = int(ops.date.split('-')[1])
-day = int(ops.date.split('-')[2])
 
-dayofyear = datetime.datetime.strptime(''+str(year)+' '+str(month)+' '+str(day)+'', '%Y %m %d').timetuple().tm_yday
+def get_date_range(start_date, end_date):
+    """
+    Find every date in the given range.
 
-if dayofyear < 10:
-        dayofyear = '00'+str(dayofyear)
-elif dayofyear < 100 and dayofyear >= 10:
-        dayofyear = '0'+str(dayofyear)
+    Parameters
+    ----------
+    start_date : datetime
+        An instance of the datetime class containing the start date.
+    end_date : datetime
+        An instance of the datetime class containing the end date.
 
-# Outputing the name of the IONEX file you require
-filename = str(ops.type)+str(dayofyear)+'0.'+str(list(str(year))[2])+str(list(str(year))[3])+'i.Z'
-# Due to the name change: https://igs.org/products/#ionosphere        
-if ops.type == 'igsg':
+    Returns
+    -------
+    date_range : list
+        A list of datetime objects containing the dates in the given range.
+    """
+    current_date = start_date
+    date_range = []
+    while current_date <= end_date:
+        date_range.append(current_date)
+        current_date += timedelta(days=1)
+    return date_range
+
+
+def format_ionex_short(date, ionex_type):
+    """
+    Format the IONEX filename using the short naming convention.
+
+    Parameters
+    ----------
+    date : datetime
+        An instance of the datetime class containing the date of the file.
+    ionex_type : str
+        The IONEX type of the file.
+
+    Returns
+    -------
+    filename : str
+        The IONEX filename in the old format.
+        e.g. igsgddd0.yyi.Z
+    """
+    dayofyear = date.timetuple().tm_yday
+    filename = f'{ionex_type}{dayofyear:03d}0.{date.strftime("%y")}i.Z'
+    return filename
+
+
+def format_ionex_long(date, ionex_type):
+    """
+    Format the IONEX filename using the long naming convention.
+    For details, see: https://igs.org/products/#ionosphere
+
+
+    Parameters
+    ----------
+    date : datetime
+        An instance of the datetime class containing the date of the file.
+    ionex_type : str
+        The IONEX type of the file.
+
+    Returns
+    -------
+    filename : str
+        The IONEX filename in the new format
+        e.g. IGS0OPSFIN_yyyyddd0000_01D_02H_GIM.INX.gz
+    """
+    dayofyear = int(date.timetuple().tm_yday)
+    year = int(date.strftime("%Y"))
+    filename = None
+    if ionex_type == 'igsg':
         if year > 2022:
-                file = f'IGS0OPSFIN_{year}{dayofyear}0000_01D_02H_GIM.INX.gz'
-        else:
-                file = filename
-elif ops.type == 'codg':
-        if year == 2022 and int(dayofyear) > 330 or year > 2022:
-                file = f'COD0OPSFIN_{year}{dayofyear}0000_01D_01H_GIM.INX.gz'
-        else:
-               file = filename
-elif ops.type == 'esag':
-        if year == 2022 and int(dayofyear) > 330 or year > 2022:
-                file = f'ESA0OPSFIN_{year}{dayofyear}0000_01D_02H_ION.IOX.gz'
-        else:
-               file = filename
-elif ops.type == 'jplg':
-        if year == 2023 and int(dayofyear) > 218 or year > 2022:
-                file = f'JPL0OPSFIN_{year}{dayofyear}0000_01D_02H_GIM.INX.gz'
-        else:
-                file = filename
-else:
-       file = filename
+            filename = f'IGS0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
+    elif ionex_type == 'codg':
+        if year == 2022 and dayofyear > 330 or year > 2022:
+            filename = f'COD0OPSFIN_{year}{dayofyear:03d}0000_01D_01H_GIM.INX.gz'
+    elif ionex_type == 'esag':
+        if year == 2022 and dayofyear > 330 or year > 2022:
+            filename = f'ESA0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_ION.IOX.gz'
+    elif ionex_type == 'jplg':
+        if year == 2023 and dayofyear == 212:
+            filename = f'JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
+        elif year == 2023 and dayofyear > 218 or year > 2023:
+            filename = f'JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
+    return filename
 
-# URL
-url = 'https://cddis.nasa.gov/archive/gps/products/ionex/'+str(year)+'/'+str(dayofyear)+'/'+str(file)
 
-# Makes request of URL, stores response in variable r
-print(f'Requesting url {url}')
-r = requests.get(url)
+def main():
+    types = ['igsg', 'jplg', 'codg', 'casg', 'upcg']
+    loglevels = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING)
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-d', '--date', type=str, help='Date in YYYY-MM-DD', required=True)
+    parser.add_argument('-e', '--end_date', type=str, help='End of date range in YYYY-MM-DD. Will treat the -d option as the start date.')
+    parser.add_argument('-t', '--type', type=str, choices=types, default='codg', help='IONEX type')
+    parser.add_argument('-L', '--loglvl', type=str, choices=loglevels, default='INFO', help='Logger verbosity level')
+    args = parser.parse_args()
 
-# Opens a local file of same name as remote file for writing to
-with open(filename, 'wb') as fd:
-    for chunk in r.iter_content(chunk_size=1000):
-        fd.write(chunk)
+    # Parse the date or date range
+    try:
+        start_date = datetime.strptime(args.date, "%Y-%m-%d")
+    except:
+        parser.error(f'Date format not recognised: {args.date}')
+    if not args.end_date: 
+        dates = [start_date]
+    else:
+        try:
+            end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
+        except:
+            parser.error(f'Date format not recognised: {args.end_date}')
+        dates = get_date_range(start_date, end_date)
 
-# Closes local file
-fd.close()
+    for date in dates:
+        short_filename = format_ionex_short(date, args.type)
+        long_filename = format_ionex_long(date, args.type)
+        dayofyear = int(date.timetuple().tm_yday)
+        year = int(date.strftime("%Y"))
+        if long_filename is None:
+            url = f'https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{short_filename}'
+        else:
+            url = f'https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{long_filename}'
+
+        logging.info(f'Requesting URL: {url}')
+        r = requests.get(url)
+
+        logging.info(f'Saving file as: {short_filename}')
+        with open(short_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1000):
+                f.write(chunk)
+
+
+if __name__ == '__main__':
+    main()
