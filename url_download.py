@@ -102,7 +102,7 @@ def format_ionex_long(date, ionex_type):
 
 
 def main():
-    types = ['igsg', 'jplg', 'codg', 'casg', 'upcg']
+    types = ['igsg', 'jplg', 'codg', 'casg', 'upcg', 'uqrg']
     loglevels = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING)
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--date', type=str, help='Date in YYYY-MM-DD', required=True)
