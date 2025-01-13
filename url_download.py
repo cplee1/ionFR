@@ -8,12 +8,9 @@ v0.1 modified from ftpdownload.py, Charlotte Sobey 2021
 v0.2 updated for new file naming scheme and added date range option, C. P. Lee 2023
 """
 
-import logging
 from datetime import datetime, timedelta
 import argparse
 import requests
-
-logging.basicConfig(level=logging.INFO)
 
 
 def get_date_range(start_date, end_date):
@@ -84,45 +81,48 @@ def format_ionex_long(date, ionex_type):
     dayofyear = int(date.timetuple().tm_yday)
     year = int(date.strftime("%Y"))
     filename = None
-    if ionex_type == 'igsg':
+    if ionex_type == "igsg":
         if year > 2022:
-            filename = f'IGS0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
-    elif ionex_type == 'codg':
+            filename = f"IGS0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz"
+    elif ionex_type == "codg":
         if year == 2022 and dayofyear > 330 or year > 2022:
-            filename = f'COD0OPSFIN_{year}{dayofyear:03d}0000_01D_01H_GIM.INX.gz'
-    elif ionex_type == 'esag':
+            filename = f"COD0OPSFIN_{year}{dayofyear:03d}0000_01D_01H_GIM.INX.gz"
+    elif ionex_type == "esag":
         if year == 2022 and dayofyear > 330 or year > 2022:
-            filename = f'ESA0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_ION.IOX.gz'
-    elif ionex_type == 'jplg':
+            filename = f"ESA0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_ION.IOX.gz"
+    elif ionex_type == "jplg":
         if year == 2023 and dayofyear == 212:
-            filename = f'JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
+            filename = f"JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz"
         elif year == 2023 and dayofyear > 218 or year > 2023:
-            filename = f'JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz'
+            filename = f"JPL0OPSFIN_{year}{dayofyear:03d}0000_01D_02H_GIM.INX.gz"
     return filename
 
 
 def main():
-    types = ['igsg', 'jplg', 'codg', 'casg', 'upcg']
-    loglevels = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING)
+    types = ["igsg", "jplg", "codg", "casg", "upcg"]
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-d', '--date', type=str, help='Date in YYYY-MM-DD', required=True)
-    parser.add_argument('-e', '--end_date', type=str, help='End of date range in YYYY-MM-DD. Will treat the -d option as the start date.')
-    parser.add_argument('-t', '--type', type=str, choices=types, default='codg', help='IONEX type')
-    parser.add_argument('-L', '--loglvl', type=str, choices=loglevels, default='INFO', help='Logger verbosity level')
+    parser.add_argument("-d", "--date", type=str, help="Date in YYYY-MM-DD", required=True)
+    parser.add_argument(
+        "-e",
+        "--end_date",
+        type=str,
+        help="End of date range in YYYY-MM-DD. Will treat the -d option as the start date.",
+    )
+    parser.add_argument("-t", "--type", type=str, choices=types, default="codg", help="IONEX type")
     args = parser.parse_args()
 
     # Parse the date or date range
     try:
         start_date = datetime.strptime(args.date, "%Y-%m-%d")
     except:
-        parser.error(f'Date format not recognised: {args.date}')
-    if not args.end_date: 
+        parser.error(f"Date format not recognised: {args.date}")
+    if not args.end_date:
         dates = [start_date]
     else:
         try:
             end_date = datetime.strptime(args.end_date, "%Y-%m-%d")
         except:
-            parser.error(f'Date format not recognised: {args.end_date}')
+            parser.error(f"Date format not recognised: {args.end_date}")
         dates = get_date_range(start_date, end_date)
 
     for date in dates:
@@ -131,18 +131,18 @@ def main():
         dayofyear = int(date.timetuple().tm_yday)
         year = int(date.strftime("%Y"))
         if long_filename is None:
-            url = f'https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{short_filename}'
+            url = f"https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{short_filename}"
         else:
-            url = f'https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{long_filename}'
+            url = f"https://cddis.nasa.gov/archive/gps/products/ionex/{year}/{dayofyear:03d}/{long_filename}"
 
-        logging.info(f'Requesting URL: {url}')
+        print(f"Requesting URL: {url}")
         r = requests.get(url)
 
-        logging.info(f'Saving file as: {short_filename}')
-        with open(short_filename, 'wb') as f:
+        print(f"Saving file as: {short_filename}")
+        with open(short_filename, "wb") as f:
             for chunk in r.iter_content(chunk_size=1000):
                 f.write(chunk)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
