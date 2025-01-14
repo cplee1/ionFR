@@ -33,7 +33,7 @@ path = os.path.dirname(os.path.realpath(__file__)) + "/"
 
 import sys
 import math
-from scipy import pi
+from math import pi
 
 # Add ionFR modules to the PYTHONPATH (internally, this is sys.path).
 sys.path.append(""+str(path)+"SiderealPackage")
